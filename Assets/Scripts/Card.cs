@@ -2,73 +2,89 @@
 using System.Collections;
 using System.Collections.Generic;
 
+public enum CardType
+{
+    CREATURE,
+    SPELL,
+    WEAPON
+}
+
+public enum Attribute
+{
+    MURLOC,
+    PIRATE,
+    DEMON,
+    MECH
+}
+
 public class Card : MonoBehaviour
 {
-	public int player;
-	
-	private Hand hand;
-	private Field field;
-	private Game gameMgr;
+    // Game Variables
+    public int attack;
+    public int mana;
+    public int health;
+    public CardType basicType;
+    public List<Attribute> attributes;
+    public string effectText;
 
-	private float targetX;
-	private float xDistFromTarget;
-	private List<Vector3> mousePositions = new List<Vector3>();
+    [HideInInspector]
+    public int currentAttack;
+    [HideInInspector]
+    public int currentMana;
+    [HideInInspector]
+    public int currentHealth;
+    [HideInInspector]
+    public int maxHealth;
 
-	private bool selected;
+    public Effects effectScript;
 
-	[SerializeField]
-	private float forceOfPull;
-	[SerializeField]
-	private float bounceFactor;
-	[SerializeField]
-	private bool isCreature;
+    public int discards = 0;
+    public int glance = 0;
+    public int toughness = 0;
 
-	public Sprite cardImg;
-	public Sprite creatureImg;
-	public Sprite cardBackImg;
-
-	[SerializeField]
-	private Effects effectScript;
-
-	private List<Modifier> modifiers;
-
-	[SerializeField]
-	private int attack;
-	[SerializeField]
-	private int retaliation;
-	[SerializeField]
-	private int health;
-
-	[HideInInspector]
-	public int maxHealth;
-	[HideInInspector]
-	public int currentAttack;
-	[HideInInspector]
-	public int currentRetaliation;
-	[HideInInspector]
-	public int currentHealth;
-
+    // Internal Variables
+    public int player;
 	public bool exhausted = true;
-	private bool dragAttack = false;
+    private bool dragAttack = false;
 
-	private TextMesh attackText;
-	private TextMesh retaliationText;
-	private TextMesh healthText;
-	
-	[SerializeField]
-	private GameObject untargetableLine;
-	private LineRenderer untLine;
-	[SerializeField]
-	private GameObject targetableLine;
-	private LineRenderer tLine;
+    private List<Modifier> modifiers;
 
-	private SpriteRenderer hoverGraphic;
+    private float targetX;
+    private float xDistFromTarget;
+    private List<Vector3> mousePositions = new List<Vector3>();
 
-	public bool wasHovered = false;
+    private bool selected;
 
-	public int discards = 0;
-	public int glance = 0;
-	public int toughness = 0;
+    private float forceOfPull = 20.0f;
+    private float bounceFactor = 0.35f;
+
+    public bool wasHovered = false;
+
+    // Object References
+    public Hand hand;
+    public Field field;
+    public Game gameMgr;
+
+    public Sprite cardBG;
+    public Sprite cardEffectBG;
+    public Sprite cardBack;
+
+    private TextMesh nameText;
+    private TextMesh effectText;
+    private TextMesh manaText;
+    private TextMesh attackText;
+    private TextMesh healthText;
+
+    private SpriteRenderer hoverGraphic;
+
+    /*
+    [SerializeField]
+    private GameObject untargetableLine;
+    private LineRenderer untLine;
+    [SerializeField]
+    private GameObject targetableLine;
+    private LineRenderer tLine;
+    */
 
 	void Awake ()
 	{
@@ -76,10 +92,10 @@ public class Card : MonoBehaviour
 		xDistFromTarget = targetX - this.rigidbody2D.position.x;
 		modifiers = new List<Modifier> ();
 
-		maxHealth = health;
-		currentAttack = attack;
-		currentRetaliation = retaliation;
-		currentHealth = health;
+        currentMana = mana;
+        currentAttack = attack;
+        currentHealth = health;
+        maxHealth = health;
 	}
 
 	void Start ()
@@ -102,7 +118,7 @@ public class Card : MonoBehaviour
 		retaliationText = this.transform.GetChild (1).GetComponent<TextMesh> ();
 		healthText = this.transform.GetChild (2).GetComponent<TextMesh> ();
 
-		if (isCreature)
+        if (IsCreature())
 		{
 			attackText.text = currentAttack.ToString ();
 			retaliationText.text = currentRetaliation.ToString ();
@@ -160,6 +176,14 @@ public class Card : MonoBehaviour
 		}
 		CheckDeath ();
 	}
+
+    public void ResetCard()
+    {
+        this.currentMana = this.mana;
+        this.currentAttack = this.attack;
+        this.currentHealth = this.health;
+        this.maxHealth = this.health;
+    }
 
 	void FixedUpdate()
 	{
@@ -468,7 +492,7 @@ public class Card : MonoBehaviour
 
 	public bool IsCreature()
 	{
-		return isCreature;
+		return this.basicType == CardType.CREATURE;
 	}
 
 	public void SetGameMgr (Game game)
@@ -479,7 +503,7 @@ public class Card : MonoBehaviour
 	public void Play (Field f)
 	{
 		hand = null;
-		if (isCreature)
+        if (IsCreature())
 		{
 			field = f;
 			this.transform.parent = f.transform;
@@ -544,7 +568,7 @@ public class Card : MonoBehaviour
 		if (visible && cardImg != null)
 		{
 			GetComponent<SpriteRenderer> ().sprite = cardImg;
-			if (isCreature)
+            if (IsCreature())
 			{
 				attackText.text = currentAttack.ToString ();
 				retaliationText.text = currentRetaliation.ToString ();
