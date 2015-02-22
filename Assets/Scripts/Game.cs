@@ -12,8 +12,10 @@ public class Game : MonoBehaviour {
 	private List<Hand> hands;
 	[SerializeField]
 	private List<Deck> decks;
-	[SerializeField]
-	private List<Field> fields;
+    [SerializeField]
+    private List<Field> fields;
+    [SerializeField]
+    private List<Field> heroes;
 	private int[] health;
 
 	private int turn;
