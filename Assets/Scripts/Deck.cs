@@ -12,16 +12,16 @@ public class Deck : MonoBehaviour
 
 	void Awake ()
 	{
-		cards = new List<Card>(GetComponentsInChildren<Card> ());
+		this.cards = new List<Card>(GetComponentsInChildren<Card> ());
 
-		for(int i = 0; i < cards.Count * 5; ++i)
+		for(int i = 0; i < this.cards.Count * 5; ++i)
 		{
-			int randomIndex1 = Random.Range (0, cards.Count);
-			int randomIndex2 = Random.Range (0, cards.Count);
+			int randomIndex1 = Random.Range (0, this.cards.Count);
+			int randomIndex2 = Random.Range (0, this.cards.Count);
 
-			Card tmp = cards[randomIndex1];
-			cards[randomIndex1] = cards[randomIndex2];
-			cards[randomIndex2] = tmp;
+			Card tmp = this.cards[randomIndex1];
+			this.cards[randomIndex1] = this.cards[randomIndex2];
+			this.cards[randomIndex2] = tmp;
 		}
 	}
 
@@ -36,36 +36,36 @@ public class Deck : MonoBehaviour
 
 	public void SetPlayer(int p)
 	{
-		player = p;
-		foreach (Card card in cards)
+		this.player = p;
+		foreach (Card card in this.cards)
 		{
-			card.SetPlayer(player);
+			card.player = this.player;
 		}
 	}
 
 	public void SetGameMgr (Game game)
 	{
-		gameMgr = game;
+		this.gameMgr = game;
 		foreach (Card card in cards)
 		{
-			card.SetGameMgr (gameMgr);
+			card.gameMgr = this.gameMgr;
 		}
 	}
 
 	public void DrawCard()
 	{
-		if (cards.Count > 0)
+		if(cards.Count > 0)
 		{
-			cards [0].gameObject.SetActive (true);
-			hand.DrawCard (cards [0]);
-			cards [0].SetHandVisible (gameMgr.turnPlayer () == cards[0].player);
-			cards.RemoveAt (0);
+            this.cards[0].gameObject.SetActive(true);
+            this.hand.DrawCard(this.cards[0]);
+            this.cards[0].SetVisible(this.gameMgr.turnPlayer() == this.cards[0].player);
+			this.cards.RemoveAt(0);
 		}
 	}
 
-	public Card GetCardAtIndex (int index)
+	public Card GetCardAtIndex(int index)
 	{
-		return cards [index];
+		return cards[index];
 	}
 
 	public void DestroyTopCard ()

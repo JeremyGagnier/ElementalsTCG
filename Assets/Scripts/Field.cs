@@ -49,12 +49,12 @@ public class Field : MonoBehaviour
 	
 	public int CardIndex(Card c)
 	{
-		return cards.IndexOf (c);
+        return this.cards.IndexOf(c);
 	}
 	
 	public int CardCount()
 	{
-		return cards.Count;
+        return this.cards.Count;
 	}
 
 	public void SetPlayer(int p)
@@ -62,23 +62,23 @@ public class Field : MonoBehaviour
 		player = p;
 		foreach (Card card in cards)
 		{
-			card.SetPlayer(player);
+			card.player = this.player;
 		}
 	}
 
 	public void SetGameMgr (Game game)
 	{
-		gameMgr = game;
+        this.gameMgr = game;
 		foreach (Card card in cards)
 		{
-			card.SetGameMgr (gameMgr);
+            card.gameMgr = this.gameMgr;
 		}
 	}
 
 	public void Play(Card c)
 	{
-		cards.Add (c);
-		foreach (Card card in cards)
+        this.cards.Add(c);
+        foreach (Card card in this.cards)
 		{
 			card.ResetCardPositionOnField ();
 		}
@@ -86,8 +86,8 @@ public class Field : MonoBehaviour
 
 	public void Destroy(Card c)
 	{
-		cards.Remove (c);
-		foreach(Card card in cards)
+        this.cards.Remove(c);
+        foreach (Card card in this.cards)
 		{
 			card.ResetCardPositionOnField ();
 		}
@@ -95,12 +95,12 @@ public class Field : MonoBehaviour
 
 	public void CardEntered (Card c)
 	{
-		hovered = c;
+        this.hovered = c;
 	}
 
 	public void CardExited (Card c)
 	{
-		hovered = null;
+        this.hovered = null;
 	}
 
 	public Target GetHoverTarget ()

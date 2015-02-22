@@ -69,14 +69,14 @@ public class Effects : ScriptableObject
 
 	virtual public void TriggerCombat (Game g, Card c, bool isAttacker, Card other)
 	{
-		other.AddModifier (new Modifier (other, 0, 0, 0, isAttacker ? c.currentAttack : c.currentRetaliation));
-		c.Exhaust();
+		other.AddModifier (new Modifier (other, 0, 0, 0, c.currentAttack));
+		c.Exhausted = true;
 	}
 
 	public void TriggerDirectAttack (Game g, Card c, int player)
 	{
 		g.Damage (player, c.currentAttack);
-		c.Exhaust();
+		c.Exhausted = true;
 	}
 	
 	public bool IsTargetValid (bool ally, bool isCreature)

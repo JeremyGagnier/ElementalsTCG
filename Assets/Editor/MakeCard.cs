@@ -13,7 +13,7 @@ public class MakeCard : EditorWindow
 	private string mana = "";
 	private string attack = "";
 	private string health = "";
-	private string effects = "";
+	private string effect = "";
 	private string attributes = "";
 	
 	[MenuItem("Card Manager/Make Card")]
@@ -31,6 +31,7 @@ public class MakeCard : EditorWindow
         component.mana = Convert.ToInt32(mana);
         component.attack = Convert.ToInt32(attack);
         component.health = Convert.ToInt32(health);
+        component.effectString = effect;
         component.effectScript = Resources.Load<Effects>("Assets/Resources/ScriptableObjects/" + name + ".asset");
 
 		AssetDatabase.CreateAsset(card, "Assets/Resources/Prefabs/Cards/" + name + ".prefab");

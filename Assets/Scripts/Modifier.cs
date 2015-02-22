@@ -4,28 +4,28 @@ using System.Collections.Generic;
 
 public class Modifier
 {
-	public Card target;
+    public Card target;
+    public int manaModifier;
 	public int attackModifier;
-	public int retaliationModifier;
 	public int maxHealthModifier;
 	public int damageAmount;
 	public int healAmount;
 	public int duration;
 
-	public Modifier(Card c, int aMod, int rMod, int hMod, int damage=0, int duration=0)
-	{
-		target = c;
+    public Modifier(Card c, int mMod, int aMod, int hMod, int damage = 0, int duration = 0)
+    {
+        target = c;
+        manaModifier = mMod;
 		attackModifier = aMod;
-		retaliationModifier = rMod;
 		maxHealthModifier = hMod;
 		damageAmount = damage;		// Negative damage is a heal.
 		this.duration = duration;	// Zero duration means effect is perpetual.
 	}
 
 	public void Apply ()
-	{
+    {
+        target.currentMana += manaModifier;
 		target.currentAttack += attackModifier;
-		target.currentRetaliation += retaliationModifier;
 		target.maxHealth += maxHealthModifier;
 		target.currentHealth += maxHealthModifier;
 
@@ -52,9 +52,9 @@ public class Modifier
 	}
 
 	public void Remove ()
-	{
+    {
+        target.currentMana -= manaModifier;
 		target.currentAttack -= attackModifier;
-		target.currentRetaliation -= retaliationModifier;
 		target.maxHealth -= maxHealthModifier;
 		target.currentHealth += damageAmount;
 		if (target.currentHealth > target.maxHealth)

@@ -25,7 +25,7 @@ public class Card : MonoBehaviour
     public int health;
     public CardType basicType;
     public List<Attribute> attributes;
-    public string effectText;
+    public string effectString;
 
     [HideInInspector]
     public int currentAttack;
@@ -44,7 +44,21 @@ public class Card : MonoBehaviour
 
     // Internal Variables
     public int player;
-	public bool exhausted = true;
+
+    private bool exhausted = true;
+	public bool Exhausted
+    {
+        get
+        {
+            return exhausted;
+        }
+        set
+        {
+            exhausted = value;
+		    hoverGraphic.gameObject.SetActive (!value);
+        }
+    }
+
     private bool dragAttack = false;
 
     private List<Modifier> modifiers;
@@ -69,6 +83,9 @@ public class Card : MonoBehaviour
     public Sprite cardEffectBG;
     public Sprite cardBack;
 
+    private GameObject manaSprite;
+    private GameObject attackSprite;
+    private GameObject healthSprite;
     private TextMesh nameText;
     private TextMesh effectText;
     private TextMesh manaText;
@@ -91,11 +108,6 @@ public class Card : MonoBehaviour
 		Physics2D.IgnoreLayerCollision (LayerMask.NameToLayer ("Cards"), LayerMask.NameToLayer ("Cards"));
 		xDistFromTarget = targetX - this.rigidbody2D.position.x;
 		modifiers = new List<Modifier> ();
-
-        currentMana = mana;
-        currentAttack = attack;
-        currentHealth = health;
-        maxHealth = health;
 	}
 
 	void Start ()
@@ -112,52 +124,41 @@ public class Card : MonoBehaviour
 		} else {
 			this.rigidbody2D.isKinematic = true;
 			this.transform.position = new Vector2(cameraRight + this.collider2D.bounds.extents.x * 999f, 0);
-		}
+        }
+        manaSprite = this.transform.FindChild("ManaSprite").gameObject;
+        attackSprite = this.transform.FindChild("AttackSprite").gameObject;
+        healthSprite = this.transform.FindChild("HealthSprite").gameObject;
+        manaText = manaSprite.transform.FindChild("Mana").GetComponent<TextMesh>();
+        attackText = attackSprite.transform.FindChild("Attack").GetComponent<TextMesh>();
+        healthText = healthSprite.transform.FindChild("Health").GetComponent<TextMesh>();
+        nameText = this.transform.FindChild("Name").GetComponent<TextMesh>();
+        effectText = this.transform.FindChild("Effect").GetComponent<TextMesh>();
 
-		attackText = this.transform.GetChild (0).GetComponent<TextMesh> ();
-		retaliationText = this.transform.GetChild (1).GetComponent<TextMesh> ();
-		healthText = this.transform.GetChild (2).GetComponent<TextMesh> ();
+		hoverGraphic = this.transform.FindChild("particleTexture").GetComponent<SpriteRenderer> ();
+        hoverGraphic.gameObject.SetActive(false);
 
-        if (IsCreature())
-		{
-			attackText.text = currentAttack.ToString ();
-			retaliationText.text = currentRetaliation.ToString ();
-			healthText.text = currentHealth.ToString ();
-		}
-		else
-		{
-			attackText.text = "";
-			retaliationText.text = "";
-			healthText.text = "";
-		}
-
-		hoverGraphic = this.transform.GetChild (3).GetComponent<SpriteRenderer> ();
-		hoverGraphic.gameObject.SetActive (false);
+        this.ResetCard();
 	}
 	
 	// Update is called once per frame
 	void Update ()
 	{
-		float cameraHeight = Camera.main.orthographicSize;
-		float cameraWidth =  Camera.main.aspect * cameraHeight;
+		//float cameraHeight = Camera.main.orthographicSize;
+		//float cameraWidth =  Camera.main.aspect * cameraHeight;
 		
-		float cameraLeft =    Camera.main.transform.position.x - cameraWidth;
-		float cameraRight =   Camera.main.transform.position.x + cameraWidth;
-		float cameraFloor =   Camera.main.transform.position.y - cameraHeight;
-		float cameraCeiling = Camera.main.transform.position.y + cameraHeight;
+		//float cameraLeft =    Camera.main.transform.position.x - cameraWidth;
+		//float cameraRight =   Camera.main.transform.position.x + cameraWidth;
+		//float cameraFloor =   Camera.main.transform.position.y - cameraHeight;
+		//float cameraCeiling = Camera.main.transform.position.y + cameraHeight;
 
-		if (this.rigidbody2D == null)
-		{
-			return;
-		}
-		
-		if (hand == null && field == null)
+        if(this.hand == null && this.field == null)
 		{
 			this.gameObject.SetActive (false);
 		}
-		else if (field != null)
+		else if(field != null)
 		{
-			if (player == 0)
+            // Force position
+			if(player == 0)
 			{
 				Vector3 newPosition = new Vector3(Camera.main.transform.position.x + targetX, Camera.main.transform.position.y - this.transform.collider2D.bounds.extents.y * 1.1f, 0);
 				if (this.transform.position != newPosition)
@@ -165,7 +166,7 @@ public class Card : MonoBehaviour
 					this.transform.position = newPosition;
 				}
 			}
-			else if (player == 1)
+			else if(player == 1)
 			{
 				Vector3 newPosition = new Vector3(Camera.main.transform.position.x + targetX, Camera.main.transform.position.y + this.transform.collider2D.bounds.extents.y * 1.1f, 0);
 				if (this.transform.position != newPosition)
@@ -183,6 +184,7 @@ public class Card : MonoBehaviour
         this.currentAttack = this.attack;
         this.currentHealth = this.health;
         this.maxHealth = this.health;
+        this.UpdateText();
     }
 
 	void FixedUpdate()
@@ -254,26 +256,79 @@ public class Card : MonoBehaviour
 			}
 		}
 	}
+
+    public void DeckToHandTransition(Hand h)
+    {
+        float cameraHeight = Camera.main.orthographicSize;
+        float cameraWidth = Camera.main.aspect * cameraHeight;
+
+        float cameraRight = Camera.main.transform.position.x + cameraWidth;
+        float cameraCeiling = Camera.main.transform.position.y + cameraHeight;
+        float cameraFloor = Camera.main.transform.position.y - cameraHeight;
+
+        this.hand = h;
+        this.transform.parent = this.hand.transform;
+        this.rigidbody2D.isKinematic = false;
+        if (player == 0)
+        {
+            this.transform.position = new Vector2(cameraRight - this.collider2D.bounds.extents.x, cameraFloor + this.collider2D.bounds.extents.y);
+            this.rigidbody2D.velocity = new Vector2(-3, 13);
+        }
+        else
+        {
+            this.transform.position = new Vector2(cameraRight - this.collider2D.bounds.extents.x, cameraCeiling - this.collider2D.bounds.extents.y);
+            this.rigidbody2D.velocity = new Vector2(-3, -13);
+        }
+    }
+
+    public void HandToFieldTransition(Field f)
+    {
+        this.hand = null;
+        if (this.IsCreature())
+        {
+            this.field = f;
+            this.transform.parent = f.transform;
+            this.UpdateText();
+        }
+    }
+
+    public void FieldToHandTransition(Hand h)
+    {
+        this.hand = h;
+        this.field = null;
+        this.transform.parent = this.hand.transform;
+        this.rigidbody2D.isKinematic = false;
+        this.SetVisible(this.gameMgr.turnPlayer() == this.player);
+        hoverGraphic.gameObject.SetActive(false);
+    }
+
+    public void ResetCardPositionInHand()
+    {
+        targetX = Camera.main.transform.position.x + (hand.CardIndex(this) - hand.CardCount() / 2f + 0.5f) * this.collider2D.bounds.extents.x;
+        xDistFromTarget = targetX - this.rigidbody2D.position.x;
+    }
+
+    public void ResetCardPositionOnField()
+    {
+        targetX = Camera.main.transform.position.x + (field.CardIndex(this) * 2f - field.CardCount() + 1) * this.collider2D.bounds.extents.x;
+        xDistFromTarget = targetX - this.rigidbody2D.position.x;
+    }
 	
-	void OnMouseDown ()
+	void OnMouseDown()
 	{
 		selected = true;
 		if (field != null)
 		{
-			gameMgr.CardClicked (this);
+			gameMgr.CardClicked(this);
 		}
-		if (player == gameMgr.turnPlayer ())
+		if (player == gameMgr.turnPlayer())
 		{
-			mousePositions.Clear ();
+			mousePositions.Clear();
 			for (int i = 0; i < 8; ++i)
 			{
-				mousePositions.Add (Camera.main.ScreenToWorldPoint (Input.mousePosition));
+				mousePositions.Add(Camera.main.ScreenToWorldPoint(Input.mousePosition));
 			}
-
-			if (this.rigidbody2D != null)
-			{
-				this.rigidbody2D.isKinematic = true;
-			}
+			this.rigidbody2D.isKinematic = true;
 		}
 	}
 
@@ -283,10 +338,10 @@ public class Card : MonoBehaviour
 		if (player == gameMgr.turnPlayer ())
 		{
 			float cameraHeight = Camera.main.orthographicSize;
-			float cameraWidth =  Camera.main.aspect * cameraHeight;
+			//float cameraWidth =  Camera.main.aspect * cameraHeight;
 			
-			float cameraLeft =    Camera.main.transform.position.x - cameraWidth;
-			float cameraRight =   Camera.main.transform.position.x + cameraWidth;
+			//float cameraLeft =    Camera.main.transform.position.x - cameraWidth;
+			//float cameraRight =   Camera.main.transform.position.x + cameraWidth;
 			float cameraFloor =   Camera.main.transform.position.y - cameraHeight;
 			float cameraCeiling = Camera.main.transform.position.y + cameraHeight;
 
@@ -380,11 +435,6 @@ public class Card : MonoBehaviour
 				hoverGraphic.gameObject.SetActive (true);
 				hoverGraphic.color = new Color (255, 0, 0);
 			}
-			
-			if (cardImg != null)
-			{
-				this.GetComponent<SpriteRenderer> ().sprite = cardImg;
-			}
 		}
 	}
 
@@ -409,11 +459,6 @@ public class Card : MonoBehaviour
 			{
 				hoverGraphic.gameObject.SetActive (false);
 			}
-
-			if (creatureImg != null)
-			{
-				this.GetComponent<SpriteRenderer> ().sprite = creatureImg;
-			}
 		}
 	}
 
@@ -437,50 +482,9 @@ public class Card : MonoBehaviour
 		{
 			targetX = Camera.main.transform.position.x + (myIndex - hand.CardCount () / 2f + 0.5f) * this.collider2D.bounds.extents.x;
 		}
-	}
+    }
 
-	public void ResetCardPositionInHand ()
-	{
-		targetX = Camera.main.transform.position.x + (hand.CardIndex (this) - hand.CardCount () / 2f + 0.5f) * this.collider2D.bounds.extents.x;
-		xDistFromTarget = targetX - this.rigidbody2D.position.x;
-	}
-
-	public void ResetCardPositionOnField ()
-	{
-		targetX = Camera.main.transform.position.x + (field.CardIndex (this) * 2f - field.CardCount () + 1) * this.collider2D.bounds.extents.x;
-		xDistFromTarget = targetX - this.rigidbody2D.position.x;
-	}
-
-	public void DrawCard(Hand h)
-	{
-		float cameraHeight = Camera.main.orthographicSize;
-		float cameraWidth =  Camera.main.aspect * cameraHeight;
-		
-		float cameraRight =   Camera.main.transform.position.x + cameraWidth;
-		float cameraCeiling = Camera.main.transform.position.y + cameraHeight;
-		float cameraFloor =   Camera.main.transform.position.y - cameraHeight;
-
-		hand = h;
-		this.transform.parent = hand.transform;
-		this.rigidbody2D.isKinematic = false;
-		if (player == 0)
-		{
-			this.transform.position = new Vector2 (cameraRight - this.collider2D.bounds.extents.x, cameraFloor + this.collider2D.bounds.extents.y);
-			this.rigidbody2D.velocity = new Vector2 (-3, 13);
-		}
-		else
-		{
-			this.transform.position = new Vector2 (cameraRight - this.collider2D.bounds.extents.x, cameraCeiling - this.collider2D.bounds.extents.y);
-			this.rigidbody2D.velocity = new Vector2 (-3, -13);
-		}
-	}
-
-	public void Exhaust ()
-	{
-		exhausted = true;
-		hoverGraphic.gameObject.SetActive (false);
-	}
-
+    /*
 	public void SetPlayer (int p)
 	{
 		player = p;
@@ -488,33 +492,11 @@ public class Card : MonoBehaviour
 		{
 			this.rigidbody2D.gravityScale = -this.rigidbody2D.gravityScale;
 		}
-	}
+	}*/
 
 	public bool IsCreature()
 	{
 		return this.basicType == CardType.CREATURE;
-	}
-
-	public void SetGameMgr (Game game)
-	{
-		gameMgr = game;
-	}
-
-	public void Play (Field f)
-	{
-		hand = null;
-        if (IsCreature())
-		{
-			field = f;
-			this.transform.parent = f.transform;
-			if (creatureImg != null)
-			{
-				this.GetComponent<SpriteRenderer> ().sprite = creatureImg;
-			}
-			attackText.text = currentAttack.ToString ();
-			retaliationText.text = currentRetaliation.ToString ();
-			healthText.text = currentHealth.ToString ();
-		}
 	}
 
 	public void TriggerPlayed(Card c)
@@ -563,25 +545,12 @@ public class Card : MonoBehaviour
 	}
 
 
-	public void SetHandVisible (bool visible)
-	{
-		if (visible && cardImg != null)
-		{
-			GetComponent<SpriteRenderer> ().sprite = cardImg;
-            if (IsCreature())
-			{
-				attackText.text = currentAttack.ToString ();
-				retaliationText.text = currentRetaliation.ToString ();
-				healthText.text = currentHealth.ToString ();
-			}
-		}
-		if (!visible && cardBackImg != null)
-		{
-			GetComponent<SpriteRenderer> ().sprite = cardBackImg;
-			attackText.text = "";
-			retaliationText.text = "";
-			healthText.text = "";
-		}
+	public void SetVisible (bool visible)
+    {
+        this.transform.FindChild("ManaSprite").gameObject.SetActive(visible);
+        this.transform.FindChild("AttackSprite").gameObject.SetActive(visible);
+        this.transform.FindChild("HealthSprite").gameObject.SetActive(visible);
+        this.transform.FindChild("cardBack").gameObject.SetActive(!visible);
 	}
 
 	public void AddModifier(Modifier m)
@@ -589,17 +558,17 @@ public class Card : MonoBehaviour
 		modifiers.Add (m);
 		m.Apply ();
 
+        manaText.text = currentMana.ToString();
 		attackText.text = currentAttack.ToString ();
-		retaliationText.text = currentRetaliation.ToString ();
 		healthText.text = currentHealth.ToString ();
 
-		if (currentRetaliation > retaliation)
+		if (currentMana > mana)
 		{
-			retaliationText.color = new Color (0, 200, 0);
+			manaText.color = new Color (0, 200, 0);
 		}
 		else
 		{
-			retaliationText.color = new Color(0, 0, 0);
+			manaText.color = new Color(0, 0, 0);
 		}
 
 		if (currentAttack > attack)
@@ -643,21 +612,33 @@ public class Card : MonoBehaviour
 		return effectScript.IsTargetValid (t.player == player, t.isCard);
 	}
 
-	public void PickUp (Hand h)
-	{
-		hand = h;
-		field = null;
-		this.transform.parent = hand.transform;
-		this.rigidbody2D.isKinematic = false;
-		this.SetHandVisible (gameMgr.turnPlayer () == player);
-		hoverGraphic.gameObject.SetActive (false);
-	}
+    public void UpdateText()
+    {
+        this.manaText.text = this.currentMana.ToString();
+		this.attackText.text = this.currentAttack.ToString ();
+        this.healthText.text = this.currentHealth.ToString();
+        this.nameText.text = this.name;
+        this.effectText.text = this.effectString;
+        this.WrapText();
+    }
 
-	public void SetField (Field f)
-	{
-		this.field = f;
-		this.hand = null;
-	}
+    public void WrapText()
+    {
+        string builder = "";
+        string text = effectText.text;
+        effectText.text = "";
+        float rowLimit = 1f;
+        string[] parts = text.Split(' ');
+        for (int i = 0; i < parts.Length; i++)
+        {
+            effectText.text += parts[i] + " ";
+            if (effectText.renderer.bounds.extents.x > rowLimit)
+            {
+                effectText.text = builder.TrimEnd() + System.Environment.NewLine + parts[i] + " ";
+            }
+            builder = effectText.text;
+        }
+    }
 }
 
 

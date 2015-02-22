@@ -153,7 +153,7 @@ public class Game : MonoBehaviour {
 		playsLeft -= 1;
 		int player = c.player;
 		hands [player].Play (c);
-		c.Play (fields [player]);
+		c.HandToFieldTransition(fields[player]);
 		if (c.IsCreature())
 		{
 			fields [player].Play (c);

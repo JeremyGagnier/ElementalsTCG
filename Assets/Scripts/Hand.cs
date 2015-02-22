@@ -77,7 +77,7 @@ public class Hand : MonoBehaviour {
 		player = p;
 		foreach (Card card in cards)
 		{
-			card.SetPlayer (player);
+			card.player = this.player;
 		}
 	}
 
@@ -86,13 +86,13 @@ public class Hand : MonoBehaviour {
 		gameMgr = game;
 		foreach (Card card in cards)
 		{
-			card.SetGameMgr (gameMgr);
+			card.gameMgr = this.gameMgr;
 		}
 	}
 	
 	public void DrawCard(Card c) {
 		cards.Add (c);
-		c.DrawCard (this);
+		c.DeckToHandTransition(this);
 		foreach (Card card in cards) {
 			card.ResetCardPositionInHand ();
 		}
@@ -101,7 +101,7 @@ public class Hand : MonoBehaviour {
 	public void SetHandVisible (bool visible)
 	{
 		foreach (Card card in cards) {
-			card.SetHandVisible (visible);
+			card.SetVisible(visible);
 		}
 	}
 
@@ -136,7 +136,7 @@ public class Hand : MonoBehaviour {
 	public void PickUp (Card c)
 	{
 		cards.Add (c);
-		c.PickUp (this);
+		c.FieldToHandTransition(this);
 		foreach (Card card in cards)
 		{
 			card.ResetCardPositionInHand ();
