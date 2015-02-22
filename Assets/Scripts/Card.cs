@@ -38,10 +38,6 @@ public class Card : MonoBehaviour
 
     public Effects effectScript;
 
-    public int discards = 0;
-    public int glance = 0;
-    public int toughness = 0;
-
     // Internal Variables
     public int player;
 
@@ -273,11 +269,13 @@ public class Card : MonoBehaviour
         {
             this.transform.position = new Vector2(cameraRight - this.collider2D.bounds.extents.x, cameraFloor + this.collider2D.bounds.extents.y);
             this.rigidbody2D.velocity = new Vector2(-3, 13);
+            this.rigidbody2D.gravityScale = Mathf.Abs(this.rigidbody2D.gravityScale);
         }
         else
         {
             this.transform.position = new Vector2(cameraRight - this.collider2D.bounds.extents.x, cameraCeiling - this.collider2D.bounds.extents.y);
             this.rigidbody2D.velocity = new Vector2(-3, -13);
+            this.rigidbody2D.gravityScale = -Mathf.Abs(this.rigidbody2D.gravityScale);
         }
     }
 
@@ -347,11 +345,11 @@ public class Card : MonoBehaviour
 
 			if (hand != null)
 			{
-				bool distanceCondition = (player == 0 ? rigidbody2D.position.y >= cameraFloor + cameraHeight * 0.75f : rigidbody2D.position.y <= cameraCeiling - cameraHeight * 0.75f);
-				if (gameMgr.hasMorePlays () && distanceCondition && hand.CardCount() >= discards + 1)
+                bool distanceCondition = (this.player == 0 ? this.rigidbody2D.position.y >= cameraFloor + cameraHeight * 0.75f : this.rigidbody2D.position.y <= cameraCeiling - cameraHeight * 0.75f);
+                if (gameMgr.GetMana(this.player) >= this.currentMana && distanceCondition)
 				{
 					this.rigidbody2D.isKinematic = true;
-					if (effectScript.targetInfo.Count > 0)
+					if (effectScript != null && effectScript.targetInfo.Count > 0)
 					{
 						gameMgr.GetTargets (this, effectScript.targetInfo.Count);
 					}
@@ -501,55 +499,54 @@ public class Card : MonoBehaviour
 
 	public void TriggerPlayed(Card c)
 	{
-		effectScript.TriggerPlayed (gameMgr, this, c);
+        effectScript.TriggerPlayed(gameMgr, this, c);
 	}
 
 	public void TriggerBattlecry(List<Target> targets)
 	{
-		effectScript.TriggerBattlecry (gameMgr, this, targets);
+        effectScript.TriggerBattlecry(gameMgr, this, targets);
 	}
 
 	public void TriggerEndTurn()
 	{
-
-		effectScript.TriggerEndTurn (gameMgr, this);
-		foreach (Modifier m in modifiers)
-		{
-			m.EndTurn ();
-		}
+        effectScript.TriggerEndTurn(gameMgr, this);
+        foreach (Modifier m in modifiers)
+        {
+            m.EndTurn();
+        }
 	}
 
 	public void TriggerStartTurn()
-	{
-		if (gameMgr.turnPlayer() == player)
-		{
-			hoverGraphic.gameObject.SetActive (true);
-			hoverGraphic.color = new Color (0, 255, 0);
-			exhausted = false;
-		}
-		else
-		{
-			hoverGraphic.gameObject.SetActive (false);
-		}
-		effectScript.TriggerStartTurn (gameMgr, this);
+    {
+        if (gameMgr.turnPlayer() == player)
+        {
+            hoverGraphic.gameObject.SetActive(true);
+            hoverGraphic.color = new Color(0, 255, 0);
+            exhausted = false;
+        }
+        else
+        {
+            hoverGraphic.gameObject.SetActive(false);
+        }
+        effectScript.TriggerStartTurn(gameMgr, this);
 	}
 	
 	public void TriggerCombat (bool isAttacker, Card other)
 	{
-		effectScript.TriggerCombat (gameMgr, this, isAttacker, other);
+        effectScript.TriggerCombat(gameMgr, this, isAttacker, other);
 	}
 
 	public void TriggerDirectAttack (int player)
 	{
-		effectScript.TriggerDirectAttack (gameMgr, this, player);
+        effectScript.TriggerDirectAttack(gameMgr, this, player);
 	}
 
 
 	public void SetVisible (bool visible)
     {
-        this.transform.FindChild("ManaSprite").gameObject.SetActive(visible);
-        this.transform.FindChild("AttackSprite").gameObject.SetActive(visible);
-        this.transform.FindChild("HealthSprite").gameObject.SetActive(visible);
+        manaSprite.SetActive(visible);
+        attackSprite.SetActive(visible);
+        healthSprite.SetActive(visible);
         this.transform.FindChild("cardBack").gameObject.SetActive(!visible);
 	}
 

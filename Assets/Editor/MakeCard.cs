@@ -4,12 +4,9 @@ using System.Collections;
 using System.IO;
 using System;
 
-
 public class MakeCard : EditorWindow
 {
-	private string scriptableObjectName = "New Effect";
-	private string scriptableObjectClass = "Effects";
-	private string name = "";
+	private string cardName = "";
 	private string mana = "";
 	private string attack = "";
 	private string health = "";
@@ -27,12 +24,39 @@ public class MakeCard : EditorWindow
 		GameObject card = new GameObject(name);
 		card.AddComponent<Card>();
         Card component = card.GetComponent<Card>();
-        component.name = name;
+        component.name = cardName;
         component.mana = Convert.ToInt32(mana);
         component.attack = Convert.ToInt32(attack);
         component.health = Convert.ToInt32(health);
         component.effectString = effect;
-        component.effectScript = Resources.Load<Effects>("Assets/Resources/ScriptableObjects/" + name + ".asset");
+        try
+        {
+            // This might always fail because "Effects" is the name of the script on the prefab.
+            component.effectScript = Resources.Load<Effects>("Assets/Resources/ScriptableObjects/" + name + ".asset");
+        }
+        catch
+        {
+            component.effectScript = Resources.Load<Effects>("Assets/Resources/ScriptableObjects/Null.asset");
+        }
+        
+        foreach (String attribute in attributes.Split(' '))
+        {
+            switch (attribute.ToLower())
+            {
+                case "murloc":
+                    component.attributes.Add(Attribute.MURLOC);
+                    break;
+                case "pirate":
+                    component.attributes.Add(Attribute.PIRATE);
+                    break;
+                case "demon":
+                    component.attributes.Add(Attribute.DEMON);
+                    break;
+                case "mech":
+                    component.attributes.Add(Attribute.MECH);
+                    break;
+            }
+        }
 
 		AssetDatabase.CreateAsset(card, "Assets/Resources/Prefabs/Cards/" + name + ".prefab");
 	}
@@ -43,10 +67,10 @@ public class MakeCard : EditorWindow
 		GUILayout.Label("Card Maker");
 		GUILayout.Space(4f);
 
-        scriptableObjectName = EditorGUILayout.TextField("Name", name);
-        scriptableObjectClass = EditorGUILayout.TextField("Mana", mana);
-		scriptableObjectClass = EditorGUILayout.TextField("Attack", attack);
-		scriptableObjectClass = EditorGUILayout.TextField("Health", health);
+        cardName = EditorGUILayout.TextField("Name", cardName);
+        mana = EditorGUILayout.TextField("Mana", mana);
+		attack = EditorGUILayout.TextField("Attack", attack);
+		health = EditorGUILayout.TextField("Health", health);
 		
 		
 		if (GUILayout.Button ("Make Card"))

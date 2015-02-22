@@ -28,23 +28,8 @@ public class Modifier
 		target.currentAttack += attackModifier;
 		target.maxHealth += maxHealthModifier;
 		target.currentHealth += maxHealthModifier;
+        target.currentHealth -= damageAmount;
 
-		int trueDamage = damageAmount;
-		if (damageAmount > 0)
-		{
-			if (damageAmount - target.toughness < 1)
-			{
-				trueDamage = 1;
-			}
-			else
-			{
-				trueDamage = damageAmount - target.toughness;
-			}
-		}
-		if (damageAmount < 0 || target.glance < damageAmount)
-		{
-			target.currentHealth -= trueDamage;
-		}
 		if (target.currentHealth > target.maxHealth)
 		{
 			target.currentHealth = target.maxHealth;

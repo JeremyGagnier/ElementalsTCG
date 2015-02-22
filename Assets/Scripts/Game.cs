@@ -18,7 +18,7 @@ public class Game : MonoBehaviour {
 
 	private int turn;
 	private int turnCount;
-	private int playsLeft;
+    private List<int> mana = new List<int>();
 
 	private List<Card> orderOfPlay;
 	
@@ -38,6 +38,7 @@ public class Game : MonoBehaviour {
 		for (int i = 0; i < numPlayers; ++i)
 		{
 			health[i] = startingHealth;
+            mana.Add(1);
 		}
 
 		orderOfPlay = new List<Card> ();
@@ -47,7 +48,6 @@ public class Game : MonoBehaviour {
 
 		turn = 0;
 		turnCount = -1;
-		playsLeft = 1;
 		targetsLeft = 0;
 		targeterCard = null;
 		targetsFound = new List<Target> ();
@@ -140,7 +140,7 @@ public class Game : MonoBehaviour {
 			}
 		}
 
-		GUI.Label (new Rect (20f,Camera.main.pixelHeight/2f, 300f, 100f), "Plays: " + playsLeft.ToString ());
+		GUI.Label (new Rect (20f,Camera.main.pixelHeight/2f, 300f, 100f), "Mana: " + mana[0].ToString ());
 
 		if (GUI.Button (new Rect(Camera.main.pixelWidth - 200f, Camera.main.pixelHeight / 2f - 50f, 200f, 100f), "End Turn"))
 		{
@@ -148,15 +148,18 @@ public class Game : MonoBehaviour {
 		}
 	}
 
-	public void Play(Card c)
+	public void Play(Card c, bool spendMana = true)
 	{
-		playsLeft -= 1;
-		int player = c.player;
-		hands [player].Play (c);
-		c.HandToFieldTransition(fields[player]);
+        if(spendMana)
+        {
+            SpendMana(c.player, c.currentMana);
+        }
+        this.mana[c.player] -= c.currentMana;
+        this.hands[c.player].Play(c);
+        c.HandToFieldTransition(this.fields[c.player]);
 		if (c.IsCreature())
 		{
-			fields [player].Play (c);
+            this.fields[c.player].Play(c);
 		}
 		c.TriggerBattlecry (targetsFound);
 		foreach (Card card in orderOfPlay)
@@ -165,14 +168,33 @@ public class Game : MonoBehaviour {
 		}
 		if (c.IsCreature ())
 		{
-			orderOfPlay.Add (c);
+			this.orderOfPlay.Add (c);
 		}
 	}
 
-	public void AddPlay (int count)
-	{
-		playsLeft += count;
-	}
+    public void SpendMana(int player, int count)
+    {
+        this.mana[player] -= count;
+        if (this.mana[player] < 0)
+        {
+            Debug.LogWarning("Player " + (player + 1).ToString() + " has spent " + (-this.mana[player]).ToString() + " mana more than they had.");
+            this.mana[player] = 0;
+        }
+    }
+
+    public void GiveMana(int player, int count)
+    {
+        this.mana[player] += count;
+        if (this.mana[player] > 10)
+        {
+            this.mana[player] = 10;
+        }
+    }
+
+    public int GetMana(int player)
+    {
+        return this.mana[player];
+    }
 	
 	public void Destroy(Card c)
 	{
@@ -183,11 +205,6 @@ public class Game : MonoBehaviour {
 	public void DrawCard (int player, int count=1) {
 		whoDrawsNext = player;
 		queueDraws += count;
-	}
-
-	public bool hasMorePlays ()
-	{
-		return (playsLeft > 0);
 	}
 
 	public int turnPlayer ()
@@ -215,7 +232,7 @@ public class Game : MonoBehaviour {
 		{
 			card.TriggerStartTurn ();
 		}
-		playsLeft = 1;
+        this.mana[this.turn] = Mathf.Min(10, 1 + turnCount/2);
 		queueDraws += 1;
 		whoDrawsNext = turn;
 	}

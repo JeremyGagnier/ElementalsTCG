@@ -33,7 +33,6 @@ public class Deck : MonoBehaviour
 	{
 	}
 
-
 	public void SetPlayer(int p)
 	{
 		this.player = p;
