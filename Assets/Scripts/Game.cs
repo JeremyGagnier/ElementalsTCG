@@ -15,8 +15,7 @@ public class Game : MonoBehaviour {
     [SerializeField]
     private List<Field> fields;
     [SerializeField]
-    private List<Field> heroes;
-	private int[] health;
+    private List<Hero> heroes;
 
 	private int turn;
 	private int turnCount;
@@ -34,12 +33,12 @@ public class Game : MonoBehaviour {
 	private List<Target> targetsFound;
 	private Card targeterCard;
 
+    private int? hovered = null;
+
 	void Awake ()
 	{
-		health = new int[numPlayers];
 		for (int i = 0; i < numPlayers; ++i)
 		{
-			health[i] = startingHealth;
             mana.Add(1);
 		}
 
@@ -62,9 +61,11 @@ public class Game : MonoBehaviour {
 			hands[i].SetPlayer(i);
 			decks[i].SetPlayer(i);
 			fields[i].SetPlayer(i);
+            heroes[i].SetPlayer(i);
 			hands[i].SetGameMgr(this);
-			decks[i].SetGameMgr(this);
-			fields[i].SetGameMgr(this);
+            decks[i].SetGameMgr(this);
+            fields[i].SetGameMgr(this);
+            heroes[i].SetGameMgr(this);
 		}
 		
 		StartTurn ();
@@ -106,42 +107,6 @@ public class Game : MonoBehaviour {
 		GUI.skin.label.fontSize = 40;
 		GUI.skin.label.alignment = TextAnchor.MiddleCenter;
 
-		if (GUI.Button (new Rect (50f,Camera.main.pixelHeight - 150f, 250f, 100f), "Health: " + health [0].ToString ()))
-		{
-			if (targetsLeft > 0)
-			{
-				Target t = new Target(false, null, 0);
-				if (targeterCard.IsTargetValid (t))
-				{
-					targetsFound.Add (t);
-					targetsLeft -= 1;
-				}
-				if (targetsLeft == 0)
-				{
-					Play (targeterCard);
-					targeterCard = null;
-				}
-			}
-		}
-
-		if (GUI.Button (new Rect (50f,50f,250f,100f), "Health: " + health [1].ToString ()))
-		{
-			if (targetsLeft > 0)
-			{
-				Target t = new Target(false, null, 1);
-				if (targeterCard.IsTargetValid (t))
-				{
-					targetsFound.Add (t);
-					targetsLeft -= 1;
-				}
-				if (targetsLeft == 0)
-				{
-					Play (targeterCard);
-					targeterCard = null;
-				}
-			}
-		}
-
 		GUI.Label (new Rect (20f,Camera.main.pixelHeight/2f, 300f, 100f), "Mana: " + mana[0].ToString ());
 
 		if (GUI.Button (new Rect(Camera.main.pixelWidth - 200f, Camera.main.pixelHeight / 2f - 50f, 200f, 100f), "End Turn"))
@@ -150,13 +115,39 @@ public class Game : MonoBehaviour {
 		}
 	}
 
+    public void HeroHovered(int player)
+    {
+        if (hovered != null)
+        {
+            Debug.LogWarning("A hero was already being hovered!");
+        }
+        hovered = player;
+    }
+
+    public void HeroUnhovered(int player)
+    {
+        if ((int)hovered != player)
+        {
+            Debug.LogWarning("Player" + (player + 1).ToString() + "'s hero was unhovered but it isn't the hovered hero!");
+        }
+        hovered = null;
+    }
+
+    public Target GetHoverTarget()
+    {
+        if (hovered != null)
+        {
+            return new Target(false, null, (int)hovered);
+        }
+        return null;
+    }
+
 	public void Play(Card c, bool spendMana = true)
 	{
         if(spendMana)
         {
             SpendMana(c.player, c.currentMana);
         }
-        this.mana[c.player] -= c.currentMana;
         this.hands[c.player].Play(c);
         c.HandToFieldTransition(this.fields[c.player]);
 		if (c.IsCreature())
@@ -246,7 +237,7 @@ public class Game : MonoBehaviour {
 
 	public void Damage (int p, int damage)
 	{
-		health [p] -= damage;
+        heroes[p].OnDamage(damage);
 	}
 
 	public Card GetCardAtIndex (int index)

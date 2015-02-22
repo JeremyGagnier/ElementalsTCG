@@ -21,24 +21,14 @@ public class MakeCard : EditorWindow
 	
 	private void CreateCardObject()
 	{
-		GameObject card = new GameObject(name);
-		card.AddComponent<Card>();
+        GameObject card = (GameObject)PrefabUtility.InstantiatePrefab(Resources.Load("Prefabs/Card"));
         Card component = card.GetComponent<Card>();
         component.name = cardName;
         component.mana = Convert.ToInt32(mana);
         component.attack = Convert.ToInt32(attack);
         component.health = Convert.ToInt32(health);
         component.effectString = effect;
-        try
-        {
-            // This might always fail because "Effects" is the name of the script on the prefab.
-            component.effectScript = Resources.Load<Effects>("Assets/Resources/ScriptableObjects/" + name + ".asset");
-        }
-        catch
-        {
-            component.effectScript = Resources.Load<Effects>("Assets/Resources/ScriptableObjects/Null.asset");
-        }
-        
+
         foreach (String attribute in attributes.Split(' '))
         {
             switch (attribute.ToLower())
@@ -57,8 +47,8 @@ public class MakeCard : EditorWindow
                     break;
             }
         }
-
-		AssetDatabase.CreateAsset(card, "Assets/Resources/Prefabs/Cards/" + name + ".prefab");
+        PrefabUtility.CreatePrefab("Assets/Resources/Prefabs/Cards/" + cardName + ".prefab", card);
+        DestroyImmediate(card);
 	}
 	
 	void OnGUI()

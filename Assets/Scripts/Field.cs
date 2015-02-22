@@ -109,17 +109,9 @@ public class Field : MonoBehaviour
 		{
 			return new Target(true, hovered, 0);
 		}
-		else if (Input.mousePosition.x < 300 && Input.mousePosition.x > 50 && Input.mousePosition.y > Camera.main.pixelHeight - 150 && Input.mousePosition.y < Camera.main.pixelHeight - 50)
-		{
-			return new Target(false, null, 1);
-		}
-		else if (Input.mousePosition.x < 300 && Input.mousePosition.x > 50 && Input.mousePosition.y < 150 && Input.mousePosition.y > 50)
-		{
-			return new Target(false, null, 0);
-		}
 		else
 		{
-			return null;
+            return this.gameMgr.GetHoverTarget();
 		}
 	}
 
