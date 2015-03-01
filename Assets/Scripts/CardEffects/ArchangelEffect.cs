@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class ArchangelEffect : Effects
+public class ArchangelEffect : Effect
 {
 	public int numberOfDiscards = 2;
 	public int damageAmount = 1;

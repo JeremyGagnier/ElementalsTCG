@@ -5,47 +5,28 @@ using System.Collections.Generic;
 public class Modifier
 {
     public Card target;
-    public int manaModifier;
-	public int attackModifier;
-	public int maxHealthModifier;
-	public int damageAmount;
-	public int healAmount;
 	public int duration;
 
-    public Modifier(Card c, int mMod, int aMod, int hMod, int damage = 0, int duration = 0)
+    public Modifier()
     {
-        target = c;
-        manaModifier = mMod;
-		attackModifier = aMod;
-		maxHealthModifier = hMod;
-		damageAmount = damage;		// Negative damage is a heal.
+    }
+
+    public Modifier(Card target, int duration = 0)
+    {
+        this.target = target;
 		this.duration = duration;	// Zero duration means effect is perpetual.
 	}
 
-	public void Apply ()
+    virtual public void Apply()
     {
-        target.currentMana += manaModifier;
-		target.currentAttack += attackModifier;
-		target.maxHealth += maxHealthModifier;
-		target.currentHealth += maxHealthModifier;
-        target.currentHealth -= damageAmount;
-
-		if (target.currentHealth > target.maxHealth)
-		{
-			target.currentHealth = target.maxHealth;
-		}
 	}
 
-	public void Remove ()
+    virtual public void Undo()
     {
-        target.currentMana -= manaModifier;
-		target.currentAttack -= attackModifier;
-		target.maxHealth -= maxHealthModifier;
-		target.currentHealth += damageAmount;
-		if (target.currentHealth > target.maxHealth)
-		{
-			target.currentHealth = target.maxHealth;
-		}
+    }
+
+    virtual public void Invert()
+    {
 	}
 
 	public void EndTurn ()
@@ -58,7 +39,7 @@ public class Modifier
 		duration -= 1;
 		if (duration == 0)
 		{
-			Remove ();
+            Invert();
 		}
 	}
 }

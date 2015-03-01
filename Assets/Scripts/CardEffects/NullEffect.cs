@@ -2,6 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class NullEffect : Effects
+public class NullEffect : Effect
 {
 }

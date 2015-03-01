@@ -47,7 +47,7 @@ public class Target
 	}
 }
 
-public class Effects : ScriptableObject
+public class Effect : ScriptableObject
 {
 	public List<TargetInfo> targetInfo;
 
@@ -69,7 +69,7 @@ public class Effects : ScriptableObject
 
 	virtual public void TriggerCombat (Game g, Card c, bool isAttacker, Card other)
 	{
-		other.AddModifier (new Modifier (other, 0, 0, 0, c.currentAttack));
+		other.AddModifier (new DamageModifier (other, c.currentAttack));
 		c.Exhausted = true;
 	}
 

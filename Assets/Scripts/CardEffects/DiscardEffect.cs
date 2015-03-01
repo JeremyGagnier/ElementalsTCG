@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class DiscardEffect : Effects
+public class DiscardEffect : Effect
 {
 	public int numberOfDiscards = 1;
 

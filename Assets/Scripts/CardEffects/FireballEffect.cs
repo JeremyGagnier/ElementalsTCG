@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class FireballEffect : Effects
+public class FireballEffect : Effect
 {
 	public int damage = 5;
 

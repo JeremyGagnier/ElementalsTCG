@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class ZanderEffect : Effects
+public class ZanderEffect : Effect
 {
 	public int damage = 2;
 

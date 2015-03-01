@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class JeremyEffect : Effects
+public class JeremyEffect : Effect
 {
 	public override void TriggerBattlecry (Game g, Card c, List<Target> targets)
 	{

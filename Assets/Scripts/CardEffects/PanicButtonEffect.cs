@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class PanicButtonEffect : Effects
+public class PanicButtonEffect : Effect
 {
 	public int numberOfDraws = 1;
 

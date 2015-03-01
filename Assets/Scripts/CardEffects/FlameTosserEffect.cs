@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class FlameTosserEffect : Effects
+public class FlameTosserEffect : Effect
 {
 	public int damage = 2;
 

@@ -5,8 +5,6 @@ using System.Collections.Generic;
 public class Game : MonoBehaviour {
 	[SerializeField]
 	private int numPlayers = 2;
-	[SerializeField]
-	private int startingHealth = 20;
 
 	[SerializeField]
 	private List<Hand> hands;
@@ -16,10 +14,11 @@ public class Game : MonoBehaviour {
     private List<Field> fields;
     [SerializeField]
     private List<Hero> heroes;
+    [SerializeField]
+    private List<ManaBar> mana;
 
 	private int turn;
 	private int turnCount;
-    private List<int> mana = new List<int>();
 
 	private List<Card> orderOfPlay;
 	
@@ -37,11 +36,6 @@ public class Game : MonoBehaviour {
 
 	void Awake ()
 	{
-		for (int i = 0; i < numPlayers; ++i)
-		{
-            mana.Add(1);
-		}
-
 		orderOfPlay = new List<Card> ();
 
 		queueDraws = 7;
@@ -102,19 +96,6 @@ public class Game : MonoBehaviour {
 		}
 	}
 
-	void OnGUI ()
-	{
-		GUI.skin.label.fontSize = 40;
-		GUI.skin.label.alignment = TextAnchor.MiddleCenter;
-
-		GUI.Label (new Rect (20f,Camera.main.pixelHeight/2f, 300f, 100f), "Mana: " + mana[0].ToString ());
-
-		if (GUI.Button (new Rect(Camera.main.pixelWidth - 200f, Camera.main.pixelHeight / 2f - 50f, 200f, 100f), "End Turn"))
-		{
-			EndTurn ();
-		}
-	}
-
     public void HeroHovered(int player)
     {
         if (hovered != null)
@@ -167,26 +148,17 @@ public class Game : MonoBehaviour {
 
     public void SpendMana(int player, int count)
     {
-        this.mana[player] -= count;
-        if (this.mana[player] < 0)
-        {
-            Debug.LogWarning("Player " + (player + 1).ToString() + " has spent " + (-this.mana[player]).ToString() + " mana more than they had.");
-            this.mana[player] = 0;
-        }
+        this.mana[player].currentMana -= count;
     }
 
     public void GiveMana(int player, int count)
     {
-        this.mana[player] += count;
-        if (this.mana[player] > 10)
-        {
-            this.mana[player] = 10;
-        }
+        this.mana[player].currentMana += count;
     }
 
     public int GetMana(int player)
     {
-        return this.mana[player];
+        return this.mana[player].currentMana;
     }
 	
 	public void Destroy(Card c)
@@ -219,20 +191,21 @@ public class Game : MonoBehaviour {
 	}
 
 	public void StartTurn () {
-		hands [0].SetHandVisible (turn == 0);
-		hands [1].SetHandVisible (turn == 1);
-		foreach (Card card in orderOfPlay)
+		this.hands [0].SetHandVisible (turn == 0);
+		this.hands [1].SetHandVisible (turn == 1);
+		foreach (Card card in this.orderOfPlay)
 		{
 			card.TriggerStartTurn ();
-		}
-        this.mana[this.turn] = Mathf.Min(10, 1 + turnCount/2);
-		queueDraws += 1;
-		whoDrawsNext = turn;
+        }
+        this.mana[this.turn].maxMana = Mathf.Min(10, 1 + turnCount / 2);
+        this.mana[this.turn].currentMana = this.mana[this.turn].maxMana;
+		this.queueDraws += 1;
+		this.whoDrawsNext = this.turn;
 	}
 
 	public void Damage (Card c, int damage)
 	{
-		c.AddModifier (new Modifier (c, 0, 0, 0, damage));
+		c.AddModifier (new DamageModifier (c, damage));
 	}
 
 	public void Damage (int p, int damage)

@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class TidalWaveEffect : Effects
+public class TidalWaveEffect : Effect
 {
 	public int damage = 2;
 

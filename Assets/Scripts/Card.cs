@@ -36,7 +36,7 @@ public class Card : MonoBehaviour
     [HideInInspector]
     public int maxHealth;
 
-    public Effects effectScript;
+    public Effect effectScript;
 
     // Internal Variables
     public int player;
@@ -130,7 +130,7 @@ public class Card : MonoBehaviour
         nameText = this.transform.FindChild("Name").GetComponent<TextMesh>();
         effectText = this.transform.FindChild("Effect").GetComponent<TextMesh>();
 
-		hoverGraphic = this.transform.FindChild("particleTexture").GetComponent<SpriteRenderer> ();
+		hoverGraphic = this.transform.FindChild("ParticleTexture").GetComponent<SpriteRenderer> ();
         hoverGraphic.gameObject.SetActive(false);
 
         this.ResetCard();
@@ -156,7 +156,7 @@ public class Card : MonoBehaviour
             // Force position
 			if(player == 0)
 			{
-				Vector3 newPosition = new Vector3(Camera.main.transform.position.x + targetX, Camera.main.transform.position.y - this.transform.collider2D.bounds.extents.y * 1.1f, 0);
+				Vector3 newPosition = new Vector3(Camera.main.transform.position.x + targetX, Camera.main.transform.position.y - this.transform.collider2D.bounds.extents.y * 11.2f / 7f - 0.1f, 0);
 				if (this.transform.position != newPosition)
 				{
 					this.transform.position = newPosition;
@@ -164,7 +164,7 @@ public class Card : MonoBehaviour
 			}
 			else if(player == 1)
 			{
-				Vector3 newPosition = new Vector3(Camera.main.transform.position.x + targetX, Camera.main.transform.position.y + this.transform.collider2D.bounds.extents.y * 1.1f, 0);
+                Vector3 newPosition = new Vector3(Camera.main.transform.position.x + targetX, Camera.main.transform.position.y + this.transform.collider2D.bounds.extents.y * 11.2f / 7f * 0.25f + 0.1f, 0);
 				if (this.transform.position != newPosition)
 				{
 					this.transform.position = newPosition;
@@ -288,6 +288,7 @@ public class Card : MonoBehaviour
             this.transform.parent = f.transform;
             this.UpdateText();
         }
+        SetOnField(true);
     }
 
     public void FieldToHandTransition(Hand h)
@@ -298,6 +299,7 @@ public class Card : MonoBehaviour
         this.rigidbody2D.isKinematic = false;
         this.SetVisible(this.gameMgr.turnPlayer() == this.player);
         hoverGraphic.gameObject.SetActive(false);
+        SetOnField(false);
     }
 
     public void ResetCardPositionInHand()
@@ -308,7 +310,7 @@ public class Card : MonoBehaviour
 
     public void ResetCardPositionOnField()
     {
-        targetX = Camera.main.transform.position.x + (field.CardIndex(this) * 2f - field.CardCount() + 1) * this.collider2D.bounds.extents.x;
+        targetX = Camera.main.transform.position.x + (field.CardIndex(this) * 2f - field.CardCount() + 1) * this.collider2D.bounds.extents.x * 1.1f;
         xDistFromTarget = targetX - this.rigidbody2D.position.x;
     }
 	
@@ -482,16 +484,6 @@ public class Card : MonoBehaviour
 		}
     }
 
-    /*
-	public void SetPlayer (int p)
-	{
-		player = p;
-		if (player == 1)
-		{
-			this.rigidbody2D.gravityScale = -this.rigidbody2D.gravityScale;
-		}
-	}*/
-
 	public bool IsCreature()
 	{
 		return this.basicType == CardType.CREATURE;
@@ -536,19 +528,46 @@ public class Card : MonoBehaviour
         effectScript.TriggerCombat(gameMgr, this, isAttacker, other);
 	}
 
-	public void TriggerDirectAttack (int player)
+	public void TriggerDirectAttack(int player)
 	{
         effectScript.TriggerDirectAttack(gameMgr, this, player);
 	}
 
 
-	public void SetVisible (bool visible)
+	public void SetVisible(bool visible)
     {
         manaSprite.SetActive(visible);
         attackSprite.SetActive(visible);
         healthSprite.SetActive(visible);
-        this.transform.FindChild("cardBack").gameObject.SetActive(!visible);
+        this.transform.FindChild("CardBack").gameObject.SetActive(!visible);
 	}
+
+    public void SetOnField(bool onField)
+    {
+        // Could call SetVisible(true) for redundancy purposes.
+        if (onField)
+        {
+            attackSprite.transform.localPosition = new Vector3(-3.25f, -0.5f, -0.0002f);
+            healthSprite.transform.localPosition = new Vector3(3.25f, -0.5f, -0.0002f);
+            this.GetComponent<BoxCollider2D>().center = new Vector2(0f, 2.1f);
+            this.GetComponent<BoxCollider2D>().size = new Vector2(8f, 7f);
+        }
+        else
+        {
+            attackSprite.transform.localPosition = new Vector3(-3.25f, -4.75f, -0.0002f);
+            healthSprite.transform.localPosition = new Vector3(3.25f, -4.75f, -0.0002f);
+            this.GetComponent<BoxCollider2D>().size = new Vector2(8f, 11.2f);
+            this.GetComponent<BoxCollider2D>().center = new Vector2(0f, -2.1f);
+        }
+        manaSprite.SetActive(!onField);
+
+        this.transform.FindChild("Border").gameObject.SetActive(!onField);
+        this.transform.FindChild("CreatureBorder").gameObject.SetActive(onField);
+        this.transform.FindChild("EffectBackground").gameObject.SetActive(!onField);
+        this.transform.FindChild("Name").gameObject.SetActive(!onField);
+        this.transform.FindChild("Effect").gameObject.SetActive(!onField);
+        this.GetComponent<SpriteRenderer>().enabled = !onField;
+    }
 
 	public void AddModifier(Modifier m)
 	{

@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class PetarEffect : Effects
+public class PetarEffect : Effect
 {
 	public override void TriggerBattlecry (Game g, Card c, List<Target> targets)
 	{
