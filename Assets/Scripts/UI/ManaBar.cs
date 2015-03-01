@@ -30,10 +30,14 @@ public class ManaBar : MonoBehaviour
         }
     }
 
-	void Start ()
+    void Awake()
     {
         this.text = GetComponentInChildren<TextMesh>();
-        UpdateText();
+    }
+
+	void Start()
+    {
+        this.UpdateText();
 	}
 
     void UpdateText()

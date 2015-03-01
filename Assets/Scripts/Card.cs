@@ -27,14 +27,89 @@ public class Card : MonoBehaviour
     public List<Attribute> attributes;
     public string effectString;
 
-    [HideInInspector]
-    public int currentAttack;
-    [HideInInspector]
-    public int currentMana;
-    [HideInInspector]
-    public int currentHealth;
-    [HideInInspector]
-    public int maxHealth;
+    private int _currentAttack;
+    public int currentAttack
+    {
+        get
+        {
+            return _currentAttack;
+        }
+        set
+        {
+            _currentAttack = value;
+            attackText.text = _currentAttack.ToString();
+            if (_currentAttack > attack)
+            {
+                attackText.color = new Color(0, 200, 0);
+            }
+            else
+            {
+                attackText.color = new Color(255, 255, 255);
+            }
+        }
+    }
+    private int _currentMana;
+    public int currentMana
+    {
+        get
+        {
+            return _currentMana;
+        }
+        set
+        {
+            _currentMana = value;
+            manaText.text = _currentMana.ToString();
+            if (_currentMana > mana)
+            {
+                manaText.color = new Color(200, 0, 0);
+            }
+            else if (_currentMana < mana)
+            {
+                manaText.color = new Color(0, 200, 0);
+            }
+            else
+            {
+                manaText.color = new Color(255, 255, 255);
+            }
+        }
+    }
+    private int _currentHealth;
+    public int currentHealth
+    {
+        get
+        {
+            return _currentHealth;
+        }
+        set
+        {
+            _currentHealth = value;
+            healthText.text = _currentHealth.ToString();
+            if (_currentHealth == maxHealth && maxHealth > health)
+            {
+                healthText.color = new Color(0, 200, 0);
+            }
+            else if (_currentHealth == maxHealth)
+            {
+                healthText.color = new Color(255, 255, 255);
+            }
+            else
+            {
+                healthText.color = new Color(200, 0, 0);
+            }
+        }
+    }
+    private int _maxHealth;
+    public int maxHealth
+    {
+        get
+        {
+            return _maxHealth;
+        }
+        set
+        {
+            _maxHealth = value;
+        }
+    }
 
     public Effect effectScript;
 
@@ -133,6 +208,12 @@ public class Card : MonoBehaviour
 		hoverGraphic = this.transform.FindChild("ParticleTexture").GetComponent<SpriteRenderer> ();
         hoverGraphic.gameObject.SetActive(false);
 
+        if (basicType == CardType.SPELL)
+        {
+            attackSprite.SetActive(false);
+            healthSprite.SetActive(false);
+        }
+
         this.ResetCard();
 	}
 	
@@ -178,8 +259,8 @@ public class Card : MonoBehaviour
     {
         this.currentMana = this.mana;
         this.currentAttack = this.attack;
-        this.currentHealth = this.health;
         this.maxHealth = this.health;
+        this.currentHealth = this.health;
         this.UpdateText();
     }
 
@@ -348,10 +429,24 @@ public class Card : MonoBehaviour
 			if (hand != null)
 			{
                 bool distanceCondition = (this.player == 0 ? this.rigidbody2D.position.y >= cameraFloor + cameraHeight * 0.75f : this.rigidbody2D.position.y <= cameraCeiling - cameraHeight * 0.75f);
-                if (gameMgr.GetMana(this.player) >= this.currentMana && distanceCondition)
+                bool targetsExist = true;
+                foreach (TargetInfo tInfo in effectScript.targetInfo)
+                {
+                    if (!gameMgr.TargetExists(this, tInfo))
+                    {
+                        targetsExist = false;
+                        break;
+                    }
+                }
+                if (gameMgr.GetMana(this.player) >= this.currentMana && 
+                    distanceCondition && 
+                    (targetsExist || this.basicType == CardType.CREATURE))
 				{
 					this.rigidbody2D.isKinematic = true;
-					if (effectScript != null && effectScript.targetInfo.Count > 0)
+                    
+					if (effectScript != null && 
+                        effectScript.targetInfo.Count > 0 && 
+                        targetsExist)
 					{
 						gameMgr.GetTargets (this, effectScript.targetInfo.Count);
 					}
@@ -537,8 +632,11 @@ public class Card : MonoBehaviour
 	public void SetVisible(bool visible)
     {
         manaSprite.SetActive(visible);
-        attackSprite.SetActive(visible);
-        healthSprite.SetActive(visible);
+        if (basicType != CardType.SPELL)
+        {
+            attackSprite.SetActive(visible);
+            healthSprite.SetActive(visible);
+        }
         this.transform.FindChild("CardBack").gameObject.SetActive(!visible);
 	}
 
@@ -577,37 +675,6 @@ public class Card : MonoBehaviour
         manaText.text = currentMana.ToString();
 		attackText.text = currentAttack.ToString ();
 		healthText.text = currentHealth.ToString ();
-
-		if (currentMana > mana)
-		{
-			manaText.color = new Color (0, 200, 0);
-		}
-		else
-		{
-			manaText.color = new Color(0, 0, 0);
-		}
-
-		if (currentAttack > attack)
-		{
-			attackText.color = new Color (0, 200, 0);
-		}
-		else
-		{
-			attackText.color = new Color(0, 0, 0);
-		}
-
-		if (currentHealth == maxHealth && maxHealth > health)
-		{
-			healthText.color = new Color (0, 200, 0);
-		}
-		else if (currentHealth == maxHealth)
-		{
-			healthText.color = new Color (0, 0, 0);
-		}
-		else
-		{
-			healthText.color = new Color(200, 0, 0);
-		}
 	}
 
 	public void CheckDeath()

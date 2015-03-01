@@ -237,6 +237,35 @@ public class Game : MonoBehaviour {
 		targetsFound.Clear ();
 	}
 
+    public bool TargetExists(Card c, TargetInfo t)
+    {
+        if (t.players)
+        {
+            return true;
+        }
+        if (fields[c.player].CardCount() != 0 && t.ally)
+        {
+            foreach (Card allyCard in fields[c.player].GetCards())
+            {
+                if (c.IsTargetValid(new Target(true, allyCard, 0)))
+                {
+                    return true;
+                }
+            }
+        }
+        if (fields[(c.player == 0) ? 1 : 0].CardCount() != 0 && t.enemy)
+        {
+            foreach (Card enemyCard in fields[(c.player == 0) ? 1 : 0].GetCards())
+            {
+                if (c.IsTargetValid(new Target(true, enemyCard, 0)))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
 	public void CardClicked (Card c)
 	{
 		if (targetsLeft > 0)

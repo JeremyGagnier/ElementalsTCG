@@ -8,6 +8,7 @@ public class MakeCard : EditorWindow
 {
 	private string cardName = "";
 	private string mana = "";
+    private CardType type = CardType.CREATURE;
 	private string attack = "";
 	private string health = "";
 	private string effect = "";
@@ -25,6 +26,7 @@ public class MakeCard : EditorWindow
         Card component = card.GetComponent<Card>();
         component.name = cardName;
         component.mana = Convert.ToInt32(mana);
+        component.basicType = type;
         component.attack = Convert.ToInt32(attack);
         component.health = Convert.ToInt32(health);
         component.effectString = effect;
@@ -59,6 +61,7 @@ public class MakeCard : EditorWindow
 
         cardName = EditorGUILayout.TextField("Name", cardName);
         mana = EditorGUILayout.TextField("Mana", mana);
+        type = (CardType)EditorGUILayout.EnumPopup("Card Type", type);
 		attack = EditorGUILayout.TextField("Attack", attack);
 		health = EditorGUILayout.TextField("Health", health);
 		
