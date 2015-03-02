@@ -17,6 +17,8 @@ public class Game : MonoBehaviour {
     [SerializeField]
     private List<ManaBar> mana;
 
+    private List<Modifier> gameModifiers = new List<Modifier>();
+
 	private int turn;
 	private int turnCount;
 
@@ -178,16 +180,20 @@ public class Game : MonoBehaviour {
 	}
 
 	public void EndTurn () {
-		foreach (Card card in orderOfPlay)
+		foreach (Card card in this.orderOfPlay)
 		{
-			card.TriggerEndTurn ();
+			card.TriggerEndTurn();
 		}
-		turn += 1;
-		turnCount += 1;
-		if (turn == numPlayers) {
-			turn = 0;
+        foreach (Modifier mod in this.gameModifiers)
+        {
+            mod.EndTurn();
+        }
+		this.turn += 1;
+		this.turnCount += 1;
+		if (this.turn == this.numPlayers) {
+			this.turn = 0;
 		}
-		StartTurn ();
+		this.StartTurn();
 	}
 
 	public void StartTurn () {
@@ -329,6 +335,13 @@ public class Game : MonoBehaviour {
       	orderOfPlay.Remove (c);
       	fields [c.player].Destroy (c);
 	}
+
+    public void ModifyMana(int player, int amount, int duration = 0)
+    {
+        PlayerManaModifier manaMod = new PlayerManaModifier(this.mana[player], amount, duration);
+        manaMod.Apply();
+        this.gameModifiers.Add(manaMod);
+    }
 }
 
 

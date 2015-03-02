@@ -710,7 +710,7 @@ public class Card : MonoBehaviour
         string builder = "";
         string text = effectText.text;
         effectText.text = "";
-        float rowLimit = 1f;
+        float rowLimit = 0.9f;
         string[] parts = text.Split(' ');
         for (int i = 0; i < parts.Length; i++)
         {
