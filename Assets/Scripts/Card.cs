@@ -20,12 +20,28 @@ public enum Attribute
 public class Card : MonoBehaviour
 {
     // Game Variables
+
+    // Permanent card attributes
     public int attack;
     public int mana;
     public int health;
     public CardType basicType;
     public List<Attribute> attributes;
     public string effectString;
+    public int hasWindfury;
+    public bool hasCharge;
+    public bool hasDivineShield;
+    public bool hasTaunt;
+
+    // Modifiable card attributes
+    [HideInInspector]
+    public int windfury;
+    [HideInInspector]
+    public bool charge;
+    [HideInInspector]
+    public bool divineShield;
+    [HideInInspector]
+    public bool taunt;
 
     private int _currentAttack;
     public int currentAttack
@@ -114,6 +130,7 @@ public class Card : MonoBehaviour
     public Effect effectScript;
 
     // Internal Variables
+    [HideInInspector]
     public int player;
 
     private bool exhausted = true;
@@ -143,11 +160,15 @@ public class Card : MonoBehaviour
     private float forceOfPull = 20.0f;
     private float bounceFactor = 0.35f;
 
+    [HideInInspector]
     public bool wasHovered = false;
 
     // Object References
+    [HideInInspector]
     public Hand hand;
+    [HideInInspector]
     public Field field;
+    [HideInInspector]
     public Game gameMgr;
 
     public Sprite cardBG;
@@ -177,7 +198,7 @@ public class Card : MonoBehaviour
 	void Awake ()
 	{
 		Physics2D.IgnoreLayerCollision (LayerMask.NameToLayer ("Cards"), LayerMask.NameToLayer ("Cards"));
-		xDistFromTarget = targetX - this.rigidbody2D.position.x;
+		xDistFromTarget = targetX - this.GetComponent<Rigidbody2D>().position.x;
 		modifiers = new List<Modifier> ();
 	}
 
@@ -191,10 +212,10 @@ public class Card : MonoBehaviour
 
 		hand = GetComponentInParent<Hand> ();
 		if (hand != null) {
-			targetX = Camera.main.transform.position.x + (hand.CardIndex (this) - hand.CardCount () / 2f) * this.collider2D.bounds.extents.x;
+			targetX = Camera.main.transform.position.x + (hand.CardIndex (this) - hand.CardCount () / 2f) * this.GetComponent<Collider2D>().bounds.extents.x;
 		} else {
-			this.rigidbody2D.isKinematic = true;
-			this.transform.position = new Vector2(cameraRight + this.collider2D.bounds.extents.x * 999f, 0);
+			this.GetComponent<Rigidbody2D>().isKinematic = true;
+			this.transform.position = new Vector2(cameraRight + this.GetComponent<Collider2D>().bounds.extents.x * 999f, 0);
         }
         manaSprite = this.transform.FindChild("ManaSprite").gameObject;
         attackSprite = this.transform.FindChild("AttackSprite").gameObject;
@@ -237,7 +258,7 @@ public class Card : MonoBehaviour
             // Force position
 			if(player == 0)
 			{
-				Vector3 newPosition = new Vector3(Camera.main.transform.position.x + targetX, Camera.main.transform.position.y - this.transform.collider2D.bounds.extents.y * 11.2f / 7f - 0.1f, 0);
+				Vector3 newPosition = new Vector3(Camera.main.transform.position.x + targetX, Camera.main.transform.position.y - this.transform.GetComponent<Collider2D>().bounds.extents.y * 11.2f / 7f - 0.1f, 0);
 				if (this.transform.position != newPosition)
 				{
 					this.transform.position = newPosition;
@@ -245,7 +266,7 @@ public class Card : MonoBehaviour
 			}
 			else if(player == 1)
 			{
-                Vector3 newPosition = new Vector3(Camera.main.transform.position.x + targetX, Camera.main.transform.position.y + this.transform.collider2D.bounds.extents.y * 11.2f / 7f * 0.25f + 0.1f, 0);
+                Vector3 newPosition = new Vector3(Camera.main.transform.position.x + targetX, Camera.main.transform.position.y + this.transform.GetComponent<Collider2D>().bounds.extents.y * 11.2f / 7f * 0.25f + 0.1f, 0);
 				if (this.transform.position != newPosition)
 				{
 					this.transform.position = newPosition;
@@ -257,6 +278,10 @@ public class Card : MonoBehaviour
 
     public void ResetCard()
     {
+        this.windfury = this.hasWindfury;
+        this.charge = this.hasCharge;
+        this.divineShield = this.hasDivineShield;
+        this.taunt = this.hasTaunt;
         this.currentMana = this.mana;
         this.currentAttack = this.attack;
         this.maxHealth = this.health;
@@ -276,51 +301,51 @@ public class Card : MonoBehaviour
 
 		if (hand != null)
 		{
-			float currentDistFromTarget = targetX - this.rigidbody2D.position.x;
+			float currentDistFromTarget = targetX - this.GetComponent<Rigidbody2D>().position.x;
 			
-			if (this.rigidbody2D.position.x - this.collider2D.bounds.extents.x < cameraLeft && this.rigidbody2D.velocity.x < 0f)
+			if (this.GetComponent<Rigidbody2D>().position.x - this.GetComponent<Collider2D>().bounds.extents.x < cameraLeft && this.GetComponent<Rigidbody2D>().velocity.x < 0f)
 			{
-				this.rigidbody2D.velocity = new Vector2(-this.rigidbody2D.velocity.x * bounceFactor, this.rigidbody2D.velocity.y);
-				this.transform.position = new Vector3(cameraLeft + this.collider2D.bounds.extents.x, this.rigidbody2D.position.y, 0f);
-				xDistFromTarget = targetX - this.rigidbody2D.position.x;
+				this.GetComponent<Rigidbody2D>().velocity = new Vector2(-this.GetComponent<Rigidbody2D>().velocity.x * bounceFactor, this.GetComponent<Rigidbody2D>().velocity.y);
+				this.transform.position = new Vector3(cameraLeft + this.GetComponent<Collider2D>().bounds.extents.x, this.GetComponent<Rigidbody2D>().position.y, 0f);
+				xDistFromTarget = targetX - this.GetComponent<Rigidbody2D>().position.x;
 			}
-			else if(this.rigidbody2D.position.x + this.collider2D.bounds.extents.x > cameraRight && this.rigidbody2D.velocity.x > 0f)
+			else if(this.GetComponent<Rigidbody2D>().position.x + this.GetComponent<Collider2D>().bounds.extents.x > cameraRight && this.GetComponent<Rigidbody2D>().velocity.x > 0f)
 			{
-				this.rigidbody2D.velocity = new Vector2(-this.rigidbody2D.velocity.x * bounceFactor, this.rigidbody2D.velocity.y);
-				this.transform.position = new Vector3(cameraRight - this.collider2D.bounds.extents.x, this.rigidbody2D.position.y, 0f);
-				xDistFromTarget = targetX - this.rigidbody2D.position.x;
+				this.GetComponent<Rigidbody2D>().velocity = new Vector2(-this.GetComponent<Rigidbody2D>().velocity.x * bounceFactor, this.GetComponent<Rigidbody2D>().velocity.y);
+				this.transform.position = new Vector3(cameraRight - this.GetComponent<Collider2D>().bounds.extents.x, this.GetComponent<Rigidbody2D>().position.y, 0f);
+				xDistFromTarget = targetX - this.GetComponent<Rigidbody2D>().position.x;
 			}
 			
-			if (this.rigidbody2D.position.y - this.collider2D.bounds.extents.y < cameraFloor && this.rigidbody2D.velocity.y < 0f)
+			if (this.GetComponent<Rigidbody2D>().position.y - this.GetComponent<Collider2D>().bounds.extents.y < cameraFloor && this.GetComponent<Rigidbody2D>().velocity.y < 0f)
 			{
-				this.rigidbody2D.velocity = new Vector2(this.rigidbody2D.velocity.x, -this.rigidbody2D.velocity.y * bounceFactor);
-				this.transform.position = new Vector3(this.rigidbody2D.position.x, cameraFloor + this.collider2D.bounds.extents.y, 0f);
+				this.GetComponent<Rigidbody2D>().velocity = new Vector2(this.GetComponent<Rigidbody2D>().velocity.x, -this.GetComponent<Rigidbody2D>().velocity.y * bounceFactor);
+				this.transform.position = new Vector3(this.GetComponent<Rigidbody2D>().position.x, cameraFloor + this.GetComponent<Collider2D>().bounds.extents.y, 0f);
 			}
-			else if (this.rigidbody2D.position.y + this.collider2D.bounds.extents.y > cameraCeiling && this.rigidbody2D.velocity.y > 0f)
+			else if (this.GetComponent<Rigidbody2D>().position.y + this.GetComponent<Collider2D>().bounds.extents.y > cameraCeiling && this.GetComponent<Rigidbody2D>().velocity.y > 0f)
 			{
-				this.rigidbody2D.velocity = new Vector2(this.rigidbody2D.velocity.x, -this.rigidbody2D.velocity.y * bounceFactor);
-				this.transform.position = new Vector3(this.rigidbody2D.position.x, cameraCeiling - this.collider2D.bounds.extents.y, 0f);
+				this.GetComponent<Rigidbody2D>().velocity = new Vector2(this.GetComponent<Rigidbody2D>().velocity.x, -this.GetComponent<Rigidbody2D>().velocity.y * bounceFactor);
+				this.transform.position = new Vector3(this.GetComponent<Rigidbody2D>().position.x, cameraCeiling - this.GetComponent<Collider2D>().bounds.extents.y, 0f);
 			}
 			
 			if (Mathf.Abs (currentDistFromTarget) < 0.04f)
 			{
-				if (this.rigidbody2D.velocity.x != 0f)
+				if (this.GetComponent<Rigidbody2D>().velocity.x != 0f)
 				{
-					this.rigidbody2D.velocity = new Vector2(0f, this.rigidbody2D.velocity.y);
+					this.GetComponent<Rigidbody2D>().velocity = new Vector2(0f, this.GetComponent<Rigidbody2D>().velocity.y);
 				}
 			}
-			else if (Mathf.Abs (currentDistFromTarget) <= Mathf.Abs (xDistFromTarget/2f) && Mathf.Sign (this.rigidbody2D.velocity.x) == Mathf.Sign (currentDistFromTarget))
+			else if (Mathf.Abs (currentDistFromTarget) <= Mathf.Abs (xDistFromTarget/2f) && Mathf.Sign (this.GetComponent<Rigidbody2D>().velocity.x) == Mathf.Sign (currentDistFromTarget))
 			{
-				Vector2 stoppingForce = new Vector2(-this.rigidbody2D.mass * 
-				                                    this.rigidbody2D.velocity.x * 
-				                                    this.rigidbody2D.velocity.x / 
+				Vector2 stoppingForce = new Vector2(-this.GetComponent<Rigidbody2D>().mass * 
+				                                    this.GetComponent<Rigidbody2D>().velocity.x * 
+				                                    this.GetComponent<Rigidbody2D>().velocity.x / 
 				                                    (currentDistFromTarget * 2f), 0);
-				this.rigidbody2D.AddForce (stoppingForce, ForceMode2D.Force);
+				this.GetComponent<Rigidbody2D>().AddForce (stoppingForce, ForceMode2D.Force);
 			}
 			else
 			{
 				Vector2 pullForce = new Vector2(Mathf.Min (Mathf.Sqrt (Mathf.Abs (currentDistFromTarget)),100), 0f) * forceOfPull * Mathf.Sign (currentDistFromTarget);
-				this.rigidbody2D.AddForce (pullForce, ForceMode2D.Force);
+				this.GetComponent<Rigidbody2D>().AddForce (pullForce, ForceMode2D.Force);
 			}
 
 			if (selected)
@@ -345,18 +370,18 @@ public class Card : MonoBehaviour
 
         this.hand = h;
         this.transform.parent = this.hand.transform;
-        this.rigidbody2D.isKinematic = false;
+        this.GetComponent<Rigidbody2D>().isKinematic = false;
         if (player == 0)
         {
-            this.transform.position = new Vector2(cameraRight - this.collider2D.bounds.extents.x, cameraFloor + this.collider2D.bounds.extents.y);
-            this.rigidbody2D.velocity = new Vector2(-3, 13);
-            this.rigidbody2D.gravityScale = Mathf.Abs(this.rigidbody2D.gravityScale);
+            this.transform.position = new Vector2(cameraRight - this.GetComponent<Collider2D>().bounds.extents.x, cameraFloor + this.GetComponent<Collider2D>().bounds.extents.y);
+            this.GetComponent<Rigidbody2D>().velocity = new Vector2(-3, 13);
+            this.GetComponent<Rigidbody2D>().gravityScale = Mathf.Abs(this.GetComponent<Rigidbody2D>().gravityScale);
         }
         else
         {
-            this.transform.position = new Vector2(cameraRight - this.collider2D.bounds.extents.x, cameraCeiling - this.collider2D.bounds.extents.y);
-            this.rigidbody2D.velocity = new Vector2(-3, -13);
-            this.rigidbody2D.gravityScale = -Mathf.Abs(this.rigidbody2D.gravityScale);
+            this.transform.position = new Vector2(cameraRight - this.GetComponent<Collider2D>().bounds.extents.x, cameraCeiling - this.GetComponent<Collider2D>().bounds.extents.y);
+            this.GetComponent<Rigidbody2D>().velocity = new Vector2(-3, -13);
+            this.GetComponent<Rigidbody2D>().gravityScale = -Mathf.Abs(this.GetComponent<Rigidbody2D>().gravityScale);
         }
     }
 
@@ -377,22 +402,23 @@ public class Card : MonoBehaviour
         this.hand = h;
         this.field = null;
         this.transform.parent = this.hand.transform;
-        this.rigidbody2D.isKinematic = false;
+        this.GetComponent<Rigidbody2D>().isKinematic = false;
         this.SetVisible(this.gameMgr.turnPlayer() == this.player);
-        hoverGraphic.gameObject.SetActive(false);
-        SetOnField(false);
+        this.hoverGraphic.gameObject.SetActive(false);
+        this.SetOnField(false);
+        this.ResetCard();
     }
 
     public void ResetCardPositionInHand()
     {
-        targetX = Camera.main.transform.position.x + (hand.CardIndex(this) - hand.CardCount() / 2f + 0.5f) * this.collider2D.bounds.extents.x;
-        xDistFromTarget = targetX - this.rigidbody2D.position.x;
+        targetX = Camera.main.transform.position.x + (hand.CardIndex(this) - hand.CardCount() / 2f + 0.5f) * this.GetComponent<Collider2D>().bounds.extents.x;
+        xDistFromTarget = targetX - this.GetComponent<Rigidbody2D>().position.x;
     }
 
     public void ResetCardPositionOnField()
     {
-        targetX = Camera.main.transform.position.x + (field.CardIndex(this) * 2f - field.CardCount() + 1) * this.collider2D.bounds.extents.x * 1.1f;
-        xDistFromTarget = targetX - this.rigidbody2D.position.x;
+        targetX = Camera.main.transform.position.x + (field.CardIndex(this) * 2f - field.CardCount() + 1) * this.GetComponent<Collider2D>().bounds.extents.x * 1.1f;
+        xDistFromTarget = targetX - this.GetComponent<Rigidbody2D>().position.x;
     }
 	
 	void OnMouseDown()
@@ -409,7 +435,7 @@ public class Card : MonoBehaviour
 			{
 				mousePositions.Add(Camera.main.ScreenToWorldPoint(Input.mousePosition));
 			}
-			this.rigidbody2D.isKinematic = true;
+			this.GetComponent<Rigidbody2D>().isKinematic = true;
 		}
 	}
 
@@ -428,7 +454,7 @@ public class Card : MonoBehaviour
 
 			if (hand != null)
 			{
-                bool distanceCondition = (this.player == 0 ? this.rigidbody2D.position.y >= cameraFloor + cameraHeight * 0.75f : this.rigidbody2D.position.y <= cameraCeiling - cameraHeight * 0.75f);
+                bool distanceCondition = (this.player == 0 ? this.GetComponent<Rigidbody2D>().position.y >= cameraFloor + cameraHeight * 0.75f : this.GetComponent<Rigidbody2D>().position.y <= cameraCeiling - cameraHeight * 0.75f);
                 bool targetsExist = true;
                 foreach (TargetInfo tInfo in effectScript.targetInfo)
                 {
@@ -442,7 +468,7 @@ public class Card : MonoBehaviour
                     distanceCondition && 
                     (targetsExist || this.basicType == CardType.CREATURE))
 				{
-					this.rigidbody2D.isKinematic = true;
+					this.GetComponent<Rigidbody2D>().isKinematic = true;
                     
 					if (effectScript != null && 
                         effectScript.targetInfo.Count > 0 && 
@@ -458,7 +484,7 @@ public class Card : MonoBehaviour
 				else
 				{
 					gameMgr.StopGettingTargets ();
-					this.rigidbody2D.isKinematic = false;
+					this.GetComponent<Rigidbody2D>().isKinematic = false;
 					List<Vector3> mouseDifferences = new List<Vector3> ();
 					for (int i = 0; i < mousePositions.Count - 1; ++i)
 					{
@@ -470,9 +496,9 @@ public class Card : MonoBehaviour
 						diffAvg += mouseDifferences [i];
 					}
 					diffAvg /= mouseDifferences.Count;
-					this.rigidbody2D.AddForce (new Vector2 (diffAvg.x, diffAvg.y) * 25.0f, ForceMode2D.Impulse);
+					this.GetComponent<Rigidbody2D>().AddForce (new Vector2 (diffAvg.x, diffAvg.y) * 25.0f, ForceMode2D.Impulse);
 
-					xDistFromTarget = targetX - this.rigidbody2D.position.x;
+					xDistFromTarget = targetX - this.GetComponent<Rigidbody2D>().position.x;
 				}
 			}
 			else if (field != null)
@@ -570,12 +596,12 @@ public class Card : MonoBehaviour
 		int myIndex = hand.CardIndex (this);
 		if (index < myIndex)
 		{
-			targetX = Camera.main.transform.position.x + (myIndex - hand.CardCount () / 2f + 1.5f) * this.collider2D.bounds.extents.x;
-			xDistFromTarget = targetX - this.rigidbody2D.position.x;
+			targetX = Camera.main.transform.position.x + (myIndex - hand.CardCount () / 2f + 1.5f) * this.GetComponent<Collider2D>().bounds.extents.x;
+			xDistFromTarget = targetX - this.GetComponent<Rigidbody2D>().position.x;
 		}
 		else
 		{
-			targetX = Camera.main.transform.position.x + (myIndex - hand.CardCount () / 2f + 0.5f) * this.collider2D.bounds.extents.x;
+			targetX = Camera.main.transform.position.x + (myIndex - hand.CardCount () / 2f + 0.5f) * this.GetComponent<Collider2D>().bounds.extents.x;
 		}
     }
 
@@ -584,10 +610,25 @@ public class Card : MonoBehaviour
 		return this.basicType == CardType.CREATURE;
 	}
 
-	public void TriggerPlayed(Card c)
+    public void TriggerSelfPlayed()
+    {
+        effectScript.TriggerSelfPlayed(gameMgr, this);
+    }
+
+    public void TriggerSelfSummoned()
+    {
+        effectScript.TriggerSelfSummoned(gameMgr, this);
+    }
+
+	public void TriggerOtherPlayed(Card c)
 	{
-        effectScript.TriggerPlayed(gameMgr, this, c);
+        effectScript.TriggerOtherPlayed(gameMgr, this, c);
 	}
+
+    public void TriggerOtherSummoned(Card c)
+    {
+        effectScript.TriggerOtherSummoned(gameMgr, this, c);
+    }
 
 	public void TriggerBattlecry(List<Target> targets)
 	{
@@ -647,7 +688,7 @@ public class Card : MonoBehaviour
         {
             attackSprite.transform.localPosition = new Vector3(-3.25f, -0.5f, -0.0002f);
             healthSprite.transform.localPosition = new Vector3(3.25f, -0.5f, -0.0002f);
-            this.GetComponent<BoxCollider2D>().center = new Vector2(0f, 2.1f);
+            this.GetComponent<BoxCollider2D>().offset = new Vector2(0f, 2.1f);
             this.GetComponent<BoxCollider2D>().size = new Vector2(8f, 7f);
         }
         else
@@ -655,7 +696,7 @@ public class Card : MonoBehaviour
             attackSprite.transform.localPosition = new Vector3(-3.25f, -4.75f, -0.0002f);
             healthSprite.transform.localPosition = new Vector3(3.25f, -4.75f, -0.0002f);
             this.GetComponent<BoxCollider2D>().size = new Vector2(8f, 11.2f);
-            this.GetComponent<BoxCollider2D>().center = new Vector2(0f, -2.1f);
+            this.GetComponent<BoxCollider2D>().offset = new Vector2(0f, -2.1f);
         }
         manaSprite.SetActive(!onField);
 
@@ -715,7 +756,7 @@ public class Card : MonoBehaviour
         for (int i = 0; i < parts.Length; i++)
         {
             effectText.text += parts[i] + " ";
-            if (effectText.renderer.bounds.extents.x > rowLimit)
+            if (effectText.GetComponent<Renderer>().bounds.extents.x > rowLimit)
             {
                 effectText.text = builder.TrimEnd() + System.Environment.NewLine + parts[i] + " ";
             }

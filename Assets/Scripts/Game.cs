@@ -125,9 +125,9 @@ public class Game : MonoBehaviour {
         return null;
     }
 
-	public void Play(Card c, bool spendMana = true)
+	public void Play(Card c, bool forced = true)
 	{
-        if(spendMana)
+        if(forced)
         {
             SpendMana(c.player, c.currentMana);
         }
@@ -137,10 +137,18 @@ public class Game : MonoBehaviour {
 		{
             this.fields[c.player].Play(c);
 		}
-		c.TriggerBattlecry (targetsFound);
+        if (!forced)
+        {
+            c.TriggerBattlecry(targetsFound);
+        }
+
 		foreach (Card card in orderOfPlay)
 		{
-			card.TriggerPlayed(c);
+            card.TriggerOtherSummoned(c);
+            if (!forced)
+            {
+                card.TriggerOtherPlayed(c);
+            }
 		}
 		if (c.IsCreature ())
 		{

@@ -51,9 +51,25 @@ public class Effect : ScriptableObject
 {
 	public List<TargetInfo> targetInfo;
 
-	virtual public void TriggerPlayed(Game g, Card parent, Card trigger)
+    public void TriggerSelfPlayed (Game g, Card c)
+    {
+        if (c.charge)
+        {
+            c.Exhausted = false;
+        }
+    }
+
+    virtual public void TriggerSelfSummoned(Game g, Card c)
+    {
+    }
+
+	virtual public void TriggerOtherPlayed (Game g, Card parent, Card trigger)
 	{
 	}
+
+    virtual public void TriggerOtherSummoned (Game g, Card parent, Card trigger)
+    {
+    }
 
 	virtual public void TriggerBattlecry (Game g, Card c, List<Target> targets)
 	{
@@ -69,14 +85,35 @@ public class Effect : ScriptableObject
 
 	virtual public void TriggerCombat (Game g, Card c, bool isAttacker, Card other)
 	{
-		other.AddModifier (new DamageModifier (other, c.currentAttack));
-		c.Exhausted = true;
+        if (other.divineShield)
+        {
+            other.divineShield = false;
+        }
+        else
+        {
+            other.AddModifier(new DamageModifier(other, c.currentAttack));
+        }
+        if (c.windfury > 0)
+        {
+            c.windfury -= 1;
+        }
+        else
+        {
+            c.Exhausted = true;
+        }
 	}
 
 	public void TriggerDirectAttack (Game g, Card c, int player)
 	{
-		g.Damage (player, c.currentAttack);
-		c.Exhausted = true;
+        g.Damage(player, c.currentAttack);
+        if (c.windfury > 0)
+        {
+            c.windfury -= 1;
+        }
+        else
+        {
+            c.Exhausted = true;
+        }
 	}
 	
 	public bool IsTargetValid (bool ally, bool isCreature)
