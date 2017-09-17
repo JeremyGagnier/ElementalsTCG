@@ -1,9 +1,9 @@
+﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2008
-
-Project("{BE617293-FFE9-50A4-4525-2A03CEF082D8}") = "ElementalsTCG", "Assembly-CSharp.csproj", "{C10CA787-F7F6-945D-4B97-B25CE7BAB2BD}"
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ElementalsTCG", "Assembly-CSharp.csproj", "{C10CA787-F7F6-945D-4B97-B25CE7BAB2BD}"
 EndProject
-Project("{BE617293-FFE9-50A4-4525-2A03CEF082D8}") = "ElementalsTCG", "Assembly-CSharp-Editor.csproj", "{1949E6B2-2236-3411-CFCB-0A5FC6D857C7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ElementalsTCG", "Assembly-CSharp-Editor.csproj", "{1949E6B2-2236-3411-CFCB-0A5FC6D857C7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,5 +41,4 @@ Global
 		$3.inheritsScope = text/plain
 		$3.scope = text/plain
 	EndGlobalSection
-
 EndGlobal
